@@ -1,46 +1,47 @@
 pipeline {
     agent any
+
     environment {
         SERVER_IP = credentials('prod-aws-ip')
     }
     stages {
-        stage ("Setup") {
-            steps{
-                sh '''
-                    python3 -m venv venv
-                    source myenv/bin/activate
-                    pip install -r requirements.txt
-                '''
+        stage('Setup') {
+            steps {
+                sh "pip install -r requirements.txt"
             }
         }
-        stage ("Test") {
+        stage('Test') {
             steps {
                 sh "pytest"
             }
         }
-        stage ("Package Code") {
+
+        stage('Package code') {
             steps {
-                sh '''
-                zip -r my-app.zip ./* -x '*.git'
-                ls -lart
-                '''
+                sh "zip -r myapp.zip ./* -x '*.git*'"
+                sh "ls -lart"
             }
         }
-        stage ("Deploy to Prod") {
-                        steps{
-                            withCredentials([sshUserPrivateKey(credentilasID: 'aws-ssh-key', keyFileVariable: 'MY_SSH_KEY' , usernameVariable: 'username')]) {
-                                sh '''
-                                    scp -i $MY_SSH_KEY -o StrictHostKeyChecking=no myapp.zip ${username}@${server_IP}:/home/ubuntu
-                                    ssh -i $MY_SSH_KEY -o StrictHostKeyChecking=no ${username}@${server_IP} << EOF
-                                        unzip -o /home/ubuntu/my-app.zip -d /home/ubuntu/app
-                                        cd /home/ubuntu/app
-                                        pip install -r requirements.txt
-                                        sudo systemctl restart flaskapp.service
+
+        stage('Deploy to Prod') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'aws-ssh-key', keyFileVariable: 'MY_SSH_KEY', usernameVariable: 'username')]) {
+                    sh '''
+                    scp -i $MY_SSH_KEY -o StrictHostKeyChecking=no myapp.zip  ${username}@${SERVER_IP}:/home/ec2-user/
+                    ssh -i $MY_SSH_KEY -o StrictHostKeyChecking=no ${username}@${SERVER_IP} << EOF
+                        unzip -o /home/ec2-user/myapp.zip -d /home/ec2-user/app/
+                        source app/venv/bin/activate
+                        cd /home/ec2-user/app/
+                        pip install -r requirements.txt
+                        sudo systemctl restart flaskapp.service
 EOF
-                                '''
-                            }
-                        }
-                        
+                    '''
                 }
+            }
+        }
+       
+        
+       
+        
     }
 }
