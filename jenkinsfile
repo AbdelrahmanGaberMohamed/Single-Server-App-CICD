@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        SERVER_IP = cerdentials('prod-aws-ip')
+        SERVER_IP = credentials('prod-aws-ip')
     }
     stages {
         stage ("Setup") {
