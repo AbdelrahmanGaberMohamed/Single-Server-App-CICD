@@ -1,7 +1,7 @@
 # Note
-Original code repo:https://github.com/kodekloudhub/course-jenkins-project
-Additions made:
-  - Jenkinsfile
+- Original code repo:https://github.com/kodekloudhub/course-jenkins-project
+- Additions made:
+  . Jenkinsfile
 
 # Purpose
 - This repo contains a sample web application written in Python the goal was to automate the test build and deploy process using Jenkins
